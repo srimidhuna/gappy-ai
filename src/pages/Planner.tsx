@@ -8,7 +8,8 @@ import { mockStudyBlocks } from '../utils/mockData';
 const Planner: React.FC = () => {
     const { tasks, toggleTask, weeklyDays, studyBlocks } = usePlannerStore();
 
-    const todayTasks = tasks.filter((t) => t.date === '2026-06-28');
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayTasks = tasks.filter((t) => t.date === todayStr);
     const completedCount = todayTasks.filter((t) => t.completed).length;
     const progress = todayTasks.length > 0 ? (completedCount / todayTasks.length) * 100 : 0;
 
@@ -77,14 +78,14 @@ const Planner: React.FC = () => {
                     <Card title="Weekly Planner" subtitle="Your week at a glance">
                         <div className="grid grid-cols-7 gap-2">
                             {weeklyDays.map((wd) => {
-                                const isToday = wd.date === '2026-06-28';
+                                const isToday = wd.date === todayStr;
                                 const dayTasks = tasks.filter((t) => t.date === wd.date);
                                 return (
                                     <div
                                         key={wd.day}
                                         className={`rounded-xl p-3 text-center transition-colors ${isToday
-                                                ? 'bg-primary-50 border-2 border-primary-200'
-                                                : 'bg-surface-50 border border-surface-200'
+                                            ? 'bg-primary-50 border-2 border-primary-200'
+                                            : 'bg-surface-50 border border-surface-200'
                                             }`}
                                     >
                                         <p className={`text-xs font-semibold ${isToday ? 'text-primary-600' : 'text-surface-500'}`}>

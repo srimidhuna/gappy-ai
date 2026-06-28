@@ -16,7 +16,7 @@ interface AssignmentStore {
     setStatusFilter: (status: AssignmentStatus | 'all') => void;
     setSourceFilter: (source: AssignmentSource | 'all') => void;
     setSubjectFilter: (subject: string) => void;
-    addAssignment: (assignment: Assignment) => void;
+    addAssignment: (assignment: Omit<Assignment, 'id' | 'createdAt'>) => void;
     updateAssignment: (id: string, updates: Partial<Assignment>) => void;
     deleteAssignment: (id: string) => void;
     getFilteredAssignments: () => Assignment[];
@@ -36,8 +36,13 @@ export const useAssignmentStore = create<AssignmentStore>((set, get) => ({
     setSourceFilter: (source) => set((state) => ({ filters: { ...state.filters, source } })),
     setSubjectFilter: (subject) => set((state) => ({ filters: { ...state.filters, subject } })),
 
-    addAssignment: (assignment) =>
-        set((state) => ({ assignments: [assignment, ...state.assignments] })),
+    addAssignment: (data) =>
+        set((state) => ({
+            assignments: [
+                { ...data, id: `a-${Date.now()}`, createdAt: new Date().toISOString() },
+                ...state.assignments,
+            ],
+        })),
 
     updateAssignment: (id, updates) =>
         set((state) => ({

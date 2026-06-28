@@ -6,6 +6,7 @@ import { Badge } from '../components/common/Badge';
 import { Input } from '../components/common/Input';
 import { Modal } from '../components/common/Modal';
 import { Table } from '../components/common/Table';
+import { AssignmentDetailsModal } from '../components/assignments/AssignmentDetailsModal';
 import { useAssignmentStore } from '../store/assignmentStore';
 import { useUIStore } from '../store/uiStore';
 import { useForm } from 'react-hook-form';
@@ -39,6 +40,7 @@ const Assignments: React.FC = () => {
     const { filters, setSearch, setStatusFilter, setSourceFilter, getFilteredAssignments, addAssignment } = useAssignmentStore();
     const { openModal, closeModal, modalOpen, addToast } = useUIStore();
     const [showFilters, setShowFilters] = useState(false);
+    const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm<AssignmentFormData>();
 
@@ -173,9 +175,17 @@ const Assignments: React.FC = () => {
                     columns={columns}
                     data={filteredAssignments}
                     keyExtractor={(a) => a.id}
+                    onRowClick={(a) => setSelectedAssignment(a)}
                     emptyMessage="No assignments match your filters"
                 />
             </Card>
+
+            {/* Assignment Details Modal */}
+            <AssignmentDetailsModal
+                assignment={selectedAssignment}
+                isOpen={!!selectedAssignment}
+                onClose={() => setSelectedAssignment(null)}
+            />
 
             {/* Add Assignment Modal */}
             <Modal

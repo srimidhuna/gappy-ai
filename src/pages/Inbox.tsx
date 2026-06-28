@@ -1,26 +1,57 @@
-import React from 'react';
-import { Inbox as InboxIcon, MessageSquare, Mail, BookOpen, FileText, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Inbox as InboxIcon, Zap } from 'lucide-react';
 import { PromptInput } from '../components/ai/PromptInput';
 import { ExtractionCard } from '../components/ai/ExtractionCard';
 import { SuggestionCard } from '../components/ai/SuggestionCard';
-import { Card } from '../components/common/Card';
-import { Badge } from '../components/common/Badge';
-import { useMessageStore } from '../store/messageStore';
+import { useAssignmentStore } from '../store/assignmentStore';
+import { useUIStore } from '../store/uiStore';
 import type { AssignmentSource } from '../types';
-
-const sourceConfig: Record<AssignmentSource, { icon: React.ReactNode; label: string; variant: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'primary' }> = {
-    whatsapp: { icon: <MessageSquare className="w-3.5 h-3.5" />, label: 'WhatsApp', variant: 'success' },
-    email: { icon: <Mail className="w-3.5 h-3.5" />, label: 'Email', variant: 'info' },
-    'google-classroom': { icon: <BookOpen className="w-3.5 h-3.5" />, label: 'Classroom', variant: 'primary' },
-    notes: { icon: <FileText className="w-3.5 h-3.5" />, label: 'Notes', variant: 'warning' },
-    manual: { icon: <FileText className="w-3.5 h-3.5" />, label: 'Manual', variant: 'default' },
-};
+import { extractAssignmentFromText, type ExtractedData } from '../services/aiService';
+import { useNavigate } from 'react-router-dom';
 
 const Inbox: React.FC = () => {
-    const { messages, addMessage, deleteMessage } = useMessageStore();
+    const { addAssignment } = useAssignmentStore();
+    const { addToast } = useUIStore();
+    const navigate = useNavigate();
 
-    const handleSubmit = (text: string, source: string) => {
-        addMessage(text, source as AssignmentSource);
+    const [isExtracting, setIsExtracting] = useState(false);
+    const [extracted, setExtracted] = useState<ExtractedData | null>(null);
+
+    const handleExtract = async (text: string, source: AssignmentSource) => {
+        setIsExtracting(true);
+        setExtracted(null);
+        try {
+            const data = await extractAssignmentFromText(text);
+            // Groq may return the data, but if we pass source explicitly or want to override:
+            setExtracted({ ...data, source: source });
+        } catch (error) {
+            console.error('Extraction failed:', error);
+            addToast({ type: 'error', message: 'Failed to extract assignment with AI.' });
+        } finally {
+            setIsExtracting(false);
+        }
+    };
+
+    const handleAccept = () => {
+        if (!extracted) return;
+
+        addAssignment({
+            title: extracted.title || 'Untitled Assignment',
+            subject: extracted.subject || 'General',
+            description: extracted.description || `Auto-extracted from ${extracted.source} message.`,
+            dueDate: extracted.dueDate || '',
+            status: 'pending',
+            priority: extracted.priority || 'medium',
+            source: extracted.source as AssignmentSource,
+        });
+
+        addToast({ type: 'success', message: 'Assignment successfully saved!' });
+        setExtracted(null); // Clear preview
+        navigate('/assignments'); // Redirect to assignments page
+    };
+
+    const handleDismiss = () => {
+        setExtracted(null);
     };
 
     return (
@@ -29,79 +60,45 @@ const Inbox: React.FC = () => {
             <div>
                 <h1 className="text-2xl font-bold text-surface-800 flex items-center gap-2">
                     <InboxIcon className="w-7 h-7 text-primary-500" />
-                    Inbox
+                    AI Inbox
                 </h1>
                 <p className="text-sm text-surface-500 mt-1">
-                    Paste messages from any source to extract assignment deadlines.
+                    Paste messages from your professors or study groups, and let AI automatically organize them.
                 </p>
             </div>
 
             {/* Main grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left: Prompt + Messages */}
+                {/* Left: Prompt */}
                 <div className="lg:col-span-2 space-y-6">
-                    <PromptInput onSubmit={handleSubmit} />
-
-                    {/* Messages list */}
-                    <Card title="Messages" subtitle={`${messages.length} messages collected`}>
-                        <div className="space-y-3">
-                            {messages.length === 0 ? (
-                                <div className="text-center py-10 text-surface-400">
-                                    <InboxIcon className="w-10 h-10 mx-auto mb-3 text-surface-300" />
-                                    <p className="text-sm">No messages yet. Paste your first message above!</p>
-                                </div>
-                            ) : (
-                                messages.map((msg) => {
-                                    const src = sourceConfig[msg.source as AssignmentSource] || sourceConfig.manual;
-                                    return (
-                                        <div
-                                            key={msg.id}
-                                            className="p-4 rounded-xl border border-surface-200 hover:border-surface-300 transition-colors bg-white"
-                                        >
-                                            <div className="flex items-start justify-between gap-3 mb-2">
-                                                <Badge variant={src.variant} dot>
-                                                    {src.label}
-                                                </Badge>
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${msg.status === 'processed'
-                                                            ? 'bg-emerald-50 text-emerald-600'
-                                                            : msg.status === 'processing'
-                                                                ? 'bg-amber-50 text-amber-600'
-                                                                : 'bg-surface-100 text-surface-500'
-                                                        }`}>
-                                                        {msg.status === 'processed' ? '✓ Processed' : msg.status === 'processing' ? '⏳ Processing' : '● New'}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => deleteMessage(msg.id)}
-                                                        className="p-1 rounded-lg text-surface-300 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <p className="text-sm text-surface-600 leading-relaxed whitespace-pre-line line-clamp-3">
-                                                {msg.rawText}
-                                            </p>
-                                            <p className="text-[11px] text-surface-400 mt-2">
-                                                Received {new Date(msg.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                            </p>
-                                        </div>
-                                    );
-                                })
-                            )}
-                        </div>
-                    </Card>
+                    {/* PromptInput requires key based on extracted to clear textbox after saving */}
+                    <PromptInput
+                        key={extracted ? 'preview' : 'empty'}
+                        onSubmit={handleExtract}
+                        isLoading={isExtracting}
+                    />
                 </div>
 
-                {/* Right: AI Placeholders */}
+                {/* Right: AI Extraction Results */}
                 <div className="space-y-6">
-                    <ExtractionCard
-                        title="Data Structures Lab Report"
-                        subject="Computer Science"
-                        dueDate="July 2, 2026"
-                        source="WhatsApp"
-                        confidence={92}
-                    />
+                    {isExtracting ? (
+                        <ExtractionCard loading />
+                    ) : extracted ? (
+                        <ExtractionCard
+                            title={extracted.title}
+                            subject={extracted.subject}
+                            dueDate={extracted.dueDate ? new Date(extracted.dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'No exact date'}
+                            source={extracted.source}
+                            confidence={95} // Arbitrary high confidence since LLM extracted it
+                            onAccept={handleAccept}
+                            onDismiss={handleDismiss}
+                        />
+                    ) : (
+                        <div className="bg-white rounded-xl border border-dashed border-surface-300 p-6 text-center">
+                            <Zap className="w-8 h-8 text-surface-300 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm text-surface-400">Your extracted assignment will appear here.</p>
+                        </div>
+                    )}
                     <SuggestionCard />
                 </div>
             </div>

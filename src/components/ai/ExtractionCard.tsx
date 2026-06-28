@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Calendar, BookOpen, Sparkles } from 'lucide-react';
+import { FileText, Calendar, BookOpen, Sparkles, Loader2 } from 'lucide-react';
 import { Badge } from '../common/Badge';
 
 interface ExtractionCardProps {
@@ -8,6 +8,9 @@ interface ExtractionCardProps {
     dueDate?: string;
     source?: string;
     confidence?: number;
+    loading?: boolean;
+    onAccept?: () => void;
+    onDismiss?: () => void;
 }
 
 export const ExtractionCard: React.FC<ExtractionCardProps> = ({
@@ -16,7 +19,19 @@ export const ExtractionCard: React.FC<ExtractionCardProps> = ({
     dueDate = 'Not detected',
     source = 'Unknown',
     confidence = 0,
+    loading = false,
+    onAccept,
+    onDismiss,
 }) => {
+    if (loading) {
+        return (
+            <div className="bg-white rounded-xl border border-surface-200 p-5 flex flex-col items-center justify-center gap-3 min-h-[180px]">
+                <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+                <span className="text-sm text-surface-500 font-medium">AI is extracting assignment details...</span>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-white rounded-xl border border-surface-200 p-5 relative overflow-hidden">
             {/* AI confidence glow */}
@@ -48,14 +63,17 @@ export const ExtractionCard: React.FC<ExtractionCardProps> = ({
             </div>
 
             <div className="mt-4 pt-3 border-t border-surface-100 flex gap-2">
-                <button className="flex-1 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors cursor-pointer">
-                    Accept
+                <button
+                    onClick={onAccept}
+                    className="flex-1 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors cursor-pointer"
+                >
+                    ✓ Save Assignment
                 </button>
-                <button className="flex-1 py-1.5 text-xs font-medium text-surface-500 bg-surface-50 rounded-lg hover:bg-surface-100 transition-colors cursor-pointer">
-                    Edit
-                </button>
-                <button className="flex-1 py-1.5 text-xs font-medium text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-colors cursor-pointer">
-                    Dismiss
+                <button
+                    onClick={onDismiss}
+                    className="flex-1 py-1.5 text-xs font-medium text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-colors cursor-pointer"
+                >
+                    ✕ Dismiss
                 </button>
             </div>
         </div>

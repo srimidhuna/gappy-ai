@@ -40,7 +40,8 @@ const Dashboard: React.FC = () => {
     const { assignments } = useAssignmentStore();
     const { tasks } = usePlannerStore();
 
-    const todayTasks = tasks.filter((t) => t.date === '2026-06-28');
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayTasks = tasks.filter((t) => t.date === todayStr);
     const upcoming = [...assignments]
         .filter((a) => a.status !== 'completed')
         .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
@@ -48,11 +49,18 @@ const Dashboard: React.FC = () => {
     const highPriority = assignments.filter((a) => a.priority === 'high' && a.status !== 'completed');
 
     // Weekly bar chart data (assignments due per day)
-    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const weekCounts = weekDays.map((_, i) => {
-        const d = new Date('2026-06-29');
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekDays = Array.from({ length: 7 }).map((_, i) => {
+        const d = new Date();
         d.setDate(d.getDate() + i);
-        return assignments.filter((a) => a.dueDate.startsWith(d.toISOString().split('T')[0])).length;
+        return dayNames[d.getDay()];
+    });
+
+    const weekCounts = Array.from({ length: 7 }).map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        return assignments.filter((a) => a.dueDate.startsWith(dateStr)).length;
     });
     const maxCount = Math.max(...weekCounts, 1);
 
@@ -127,8 +135,8 @@ const Dashboard: React.FC = () => {
                                 <div key={task.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-50 transition-colors">
                                     <div
                                         className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 ${task.completed
-                                                ? 'bg-primary-500 border-primary-500'
-                                                : 'border-surface-300'
+                                            ? 'bg-primary-500 border-primary-500'
+                                            : 'border-surface-300'
                                             }`}
                                     >
                                         {task.completed && (
