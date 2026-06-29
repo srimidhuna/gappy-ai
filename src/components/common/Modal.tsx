@@ -55,7 +55,7 @@ export const Modal: React.FC<ModalProps> = ({
             />
             {/* Modal content */}
             <div
-                className={`relative w-full ${sizeClasses[size]} bg-white rounded-2xl shadow-xl mx-4 animate-[fadeIn_0.2s_ease-out]`}
+                className={`relative w-full ${sizeClasses[size]} max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-xl mx-4 animate-[fadeIn_0.2s_ease-out]`}
             >
                 {title && (
                     <div className="flex items-center justify-between px-6 py-4 border-b border-surface-100">
@@ -68,7 +68,7 @@ export const Modal: React.FC<ModalProps> = ({
                         </button>
                     </div>
                 )}
-                <div className="p-6">{children}</div>
+                <div className="p-6 overflow-y-auto">{children}</div>
             </div>
         </div>,
         document.body

@@ -1,5 +1,8 @@
 const express = require('express');
 const axios = require('axios');
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router();
 
 // ─── Helper: call Groq ──────────────────────────────────────────────────────
@@ -40,12 +43,42 @@ function parseJSON(raw) {
         // 3. Extract first {...} block
         const match = str.match(/\{[\s\S]*\}/);
         if (match) {
-            try { return JSON.parse(match[0]); } catch (__) {}
+            try { return JSON.parse(match[0]); } catch (__) { }
         }
         console.error('parseJSON failed on:', str.slice(0, 300));
         throw new Error('No valid JSON in response');
     }
 }
+
+// ── GET /api/assignments ───────────────────────────────────────────────────
+router.get('/assignments', (req, res) => {
+    const tempFile = path.join(__dirname, '..', `temp_assignments_${Date.now()}.json`);
+    try {
+        execSync(`lemma records export Assignments --file "${tempFile}"`, { stdio: 'pipe' });
+
+        const data = fs.readFileSync(tempFile, 'utf8');
+        let assignments = [];
+        try {
+            assignments = JSON.parse(data);
+        } catch (e) {
+            console.error('Failed to parse Lemma output:', e);
+            return res.status(500).json({ success: false, assignments: [], error: 'Unable to parse assignments' });
+        }
+
+        res.json({ success: true, assignments });
+    } catch (error) {
+        console.error('Assignments export error:', error.message);
+        res.status(500).json({ success: false, assignments: [], error: 'Unable to fetch assignments' });
+    } finally {
+        if (fs.existsSync(tempFile)) {
+            try {
+                fs.unlinkSync(tempFile);
+            } catch (cleanupError) {
+                console.error('Failed to delete temp file:', cleanupError.message);
+            }
+        }
+    }
+});
 
 // ── POST /api/extract ─────────────────────────────────────────────────────
 router.post('/extract', async (req, res) => {
@@ -70,7 +103,36 @@ Message: "${message.replace(/"/g, "'")}"`;
 
         const raw = await callGroq(systemPrompt, userPrompt, 0);
         const assignment = parseJSON(raw);
-        res.json({ success: true, assignment });
+
+        let lemmaMessageId = null;
+
+        try {
+            const lemmaData = JSON.stringify({
+                rawMessage: message,
+                source: source || 'unknown',
+                processed: false
+            });
+            const safeData = lemmaData.replace(/'/g, "'\\''");
+            const output = execSync(`lemma records create Messages '${safeData}'`, { encoding: 'utf-8' });
+
+            try {
+                const parsed = JSON.parse(output.trim());
+                lemmaMessageId = parsed.id || parsed._id || parsed.recordId || null;
+            } catch (e) {
+                const match = output.match(/id["']?\s*[:=]\s*["']?([a-zA-Z0-9_-]+)["']?/i) || output.match(/ID\s*:\s*([a-zA-Z0-9_-]+)/i);
+                if (match) {
+                    lemmaMessageId = match[1];
+                }
+            }
+
+            if (lemmaMessageId) {
+                console.log(`Lemma Message ID: ${lemmaMessageId}`);
+            }
+        } catch (lemmaError) {
+            console.error('Lemma CLI error:', lemmaError.message);
+        }
+
+        res.json({ success: true, assignment, lemmaMessageId });
     } catch (error) {
         console.error('Extract error:', error.response?.data || error.message);
         res.status(500).json({ success: false, error: 'Failed to extract assignment' });
@@ -100,7 +162,13 @@ Return a JSON object with: summary (2-3 sentence string), keyPoints (array of 2-
         res.json({ success: true, ...result });
     } catch (error) {
         console.error('Summarize error:', error.message);
-        res.status(500).json({ success: false, error: 'Failed to generate summary' });
+        // Fallback response so UI can still display a study plan
+        const fallback = {
+            summary: `Study plan for "${title}" could not be generated via AI; using placeholder.`,
+            keyPoints: [],
+            estimatedHours: 2,
+        };
+        res.json({ success: true, ...fallback });
     }
 });
 
