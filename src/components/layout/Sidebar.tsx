@@ -5,10 +5,13 @@ import {
     Inbox,
     ClipboardList,
     CalendarRange,
+    CalendarDays,
     Settings,
     Rocket,
     ChevronLeft,
     ChevronRight,
+    Search,
+    BarChart2,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
 
@@ -16,7 +19,10 @@ const navItems = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/inbox', label: 'Inbox', icon: Inbox },
     { to: '/assignments', label: 'Assignments', icon: ClipboardList },
+    { to: '/search', label: 'Search', icon: Search },
     { to: '/planner', label: 'Planner', icon: CalendarRange },
+    { to: '/calendar', label: 'Calendar', icon: CalendarDays },
+    { to: '/analytics', label: 'Analytics', icon: BarChart2 },
     { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -25,8 +31,9 @@ export const Sidebar: React.FC = () => {
 
     return (
         <aside
-            className={`fixed left-0 top-0 h-screen bg-white border-r border-surface-200 flex flex-col transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-[72px]' : 'w-[240px]'
-                }`}
+            className={`fixed left-0 top-0 h-screen bg-white border-r border-surface-200 flex flex-col transition-all duration-300 z-40 ${
+                sidebarCollapsed ? 'w-[72px]' : 'w-[240px]'
+            }`}
         >
             {/* Logo */}
             <div className="flex items-center gap-3 px-5 h-16 border-b border-surface-100">
@@ -41,16 +48,18 @@ export const Sidebar: React.FC = () => {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 py-4 px-3 space-y-1">
+            <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.to}
                         to={item.to}
                         end={item.to === '/'}
+                        title={sidebarCollapsed ? item.label : undefined}
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${isActive
-                                ? 'bg-primary-50 text-primary-700'
-                                : 'text-surface-500 hover:bg-surface-50 hover:text-surface-700'
+                            `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                                isActive
+                                    ? 'bg-primary-50 text-primary-700'
+                                    : 'text-surface-500 hover:bg-surface-50 hover:text-surface-700'
                             }`
                         }
                     >

@@ -1,18 +1,28 @@
 // ─── Assignment ─────────────────────────────────
-export type AssignmentStatus = 'pending' | 'in-progress' | 'completed' | 'overdue';
+export type AssignmentStatus = 'pending' | 'in-progress' | 'completed' | 'overdue' | 'needs-review';
 export type AssignmentPriority = 'low' | 'medium' | 'high';
-export type AssignmentSource = 'whatsapp' | 'google-classroom' | 'email' | 'manual' | 'notes';
+export type AssignmentSource = 'whatsapp' | 'google-classroom' | 'email' | 'manual' | 'notes' | 'college-portal' | 'lab' | 'project';
+export type SubmissionMode = 'online' | 'offline' | 'email' | 'lms' | 'other';
 
 export interface Assignment {
     id: string;
     title: string;
     subject: string;
     description: string;
-    dueDate: string;       // ISO date string
+    dueDate: string;           // ISO date string
+    dueTime?: string;          // e.g. "23:59"
     status: AssignmentStatus;
     priority: AssignmentPriority;
     source: AssignmentSource;
     createdAt: string;
+    // Extended AI fields
+    professor?: string;
+    submissionMode?: SubmissionMode;
+    submissionLink?: string;
+    notes?: string;
+    estimatedHours?: number;   // AI-estimated study hours
+    confidence?: number;       // 0-100, AI confidence in extraction
+    summary?: string;          // AI-generated summary
 }
 
 // ─── Task (Planner) ────────────────────────────

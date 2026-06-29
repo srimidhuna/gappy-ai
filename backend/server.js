@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 
 const extractRoute = require('./routes/extract');
 
@@ -10,9 +10,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// All AI routes (extract, summarize, recommend, insights, nlsearch)
 app.use('/api', extractRoute);
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`🚀 DeadlinePilot AI Backend running on port ${PORT}`);
 });

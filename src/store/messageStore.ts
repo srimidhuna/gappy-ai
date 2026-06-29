@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Message, AssignmentSource } from '../types';
+import type { AssignmentSource } from '../types';
 import { mockMessages } from '../utils/mockData';
 
 type MessageStatus = 'new' | 'processing' | 'processed' | 'failed';

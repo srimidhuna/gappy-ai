@@ -17,14 +17,19 @@ const statusBadge: Record<AssignmentStatus, { variant: 'default' | 'success' | '
     'in-progress': { variant: 'info', label: 'In Progress' },
     completed: { variant: 'success', label: 'Completed' },
     overdue: { variant: 'danger', label: 'Overdue' },
+    'needs-review': { variant: 'primary', label: 'Needs Review' },
+    cancelled: { variant: 'danger', label: 'Cancelled' },
 };
 
 const sourceIcons: Record<AssignmentSource, React.ReactNode> = {
     whatsapp: <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />,
-    email: <Mail className="w-3.5 h-3.5 text-blue-500" />,
-    'google-classroom': <BookOpen className="w-3.5 h-3.5 text-primary-500" />,
-    notes: <FileText className="w-3.5 h-3.5 text-amber-500" />,
-    manual: <FileText className="w-3.5 h-3.5 text-surface-400" />,
+    email: <Mail className="w-3 h-3" />,
+    'google-classroom': <BookOpen className="w-3 h-3" />,
+    notes: <FileText className="w-3 h-3" />,
+    manual: <FileText className="w-3 h-3" />,
+    'college-portal': <BookOpen className="w-3 h-3" />,
+    lab: <FileText className="w-3 h-3" />,
+    project: <FileText className="w-3 h-3" />,
 };
 
 interface AssignmentFormData {
