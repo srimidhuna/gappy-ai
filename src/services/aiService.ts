@@ -1,7 +1,10 @@
 import axios from 'axios';
 import type { Assignment, AssignmentSource, SubmissionMode } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL;
+const apiClient = axios.create({
+    baseURL: `${API_URL}/api`
+});
 
 // ── Extracted data shape from backend ──────────────────────────────────────
 export interface ExtractedData {
@@ -114,7 +117,7 @@ export async function extractAssignmentFromText(
     text: string,
     source: AssignmentSource = 'manual'
 ): Promise<ExtractedData> {
-    const response = await axios.post(`${API_BASE}/extract`, { message: text, source });
+    const response = await apiClient.post('/extract', { message: text, source });
     if (response.data?.success) {
         const a = response.data.assignment;
         return {
@@ -139,25 +142,25 @@ export async function extractAssignmentFromText(
 export async function generateSummary(
     assignment: Pick<Assignment, 'title' | 'subject' | 'description' | 'dueDate' | 'priority'> & { professor?: string }
 ): Promise<SummaryResult> {
-    const response = await axios.post(`${API_BASE}/summarize`, assignment);
+    const response = await apiClient.post('/summarize', assignment);
     if (response.data?.success) return response.data as SummaryResult;
     throw new Error(response.data?.error || 'Summary failed');
 }
 
 export async function getRecommendations(assignments: Assignment[]): Promise<RecommendResult> {
-    const response = await axios.post(`${API_BASE}/recommend`, { assignments });
+    const response = await apiClient.post('/recommend', { assignments });
     if (response.data?.success) return response.data as RecommendResult;
     throw new Error(response.data?.error || 'Recommend failed');
 }
 
 export async function getProductivityInsights(assignments: Assignment[]): Promise<InsightsResult> {
-    const response = await axios.post(`${API_BASE}/insights`, { assignments });
+    const response = await apiClient.post('/insights', { assignments });
     if (response.data?.success) return response.data as InsightsResult;
     throw new Error(response.data?.error || 'Insights failed');
 }
 
 export async function parseNaturalLanguageSearch(query: string): Promise<NLSearchFilters> {
-    const response = await axios.post(`${API_BASE}/nlsearch`, { query });
+    const response = await apiClient.post('/nlsearch', { query });
     if (response.data?.success) return response.data.filters as NLSearchFilters;
     throw new Error(response.data?.error || 'NL search failed');
 }

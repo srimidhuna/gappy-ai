@@ -77,7 +77,7 @@ const buildNotifications = (assignments: Assignment[]): AppNotification[] => {
                 createdAt: new Date().toISOString(),
                 read: false,
             });
-        } else if (a.priority === 'high' && a.status !== 'completed' && a.status !== 'overdue') {
+        } else if (a.priority === 'high' && a.status !== 'completed' && (a.status as string) !== 'overdue') {
             notes.push({
                 id: `n-high-${a.id}`,
                 type: 'high-priority',

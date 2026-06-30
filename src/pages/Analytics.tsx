@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    PieChart, Pie, Cell, Legend, LineChart, Line, AreaChart, Area,
+    PieChart, Pie, Cell, Legend, AreaChart, Area,
     RadialBarChart, RadialBar,
 } from 'recharts';
 import {
@@ -314,8 +314,9 @@ const Analytics: React.FC = () => {
                                 paddingAngle={3}
                                 label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                                     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                                    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
-                                    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+                                    const angle = midAngle || 0;
+                                    const x = cx + radius * Math.cos(-angle * Math.PI / 180);
+                                    const y = cy + radius * Math.sin(-angle * Math.PI / 180);
                                     const p = percent || 0;
                                     if (p < 0.05) return null;
                                     return (

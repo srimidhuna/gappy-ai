@@ -33,7 +33,7 @@ interface AdvancedFiltersProps {
 }
 
 // Count active (non-default) filters
-const countActiveFilters = (filters: ReturnType<typeof useAssignmentStore>['filters']): number => {
+const countActiveFilters = (filters: any): number => {
     let count = 0;
     if (filters.status !== 'all') count++;
     if (filters.priority !== 'all') count++;

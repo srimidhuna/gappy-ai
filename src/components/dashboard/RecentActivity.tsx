@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, MessageSquare, Mail, Plus, FileText, BookOpen, Smartphone } from 'lucide-react';
+import { Clock, Mail, Plus, FileText, BookOpen, Smartphone } from 'lucide-react';
 import type { Assignment, AssignmentSource } from '../../types';
 
 interface RecentActivityProps {

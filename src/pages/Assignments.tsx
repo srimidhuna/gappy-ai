@@ -18,7 +18,6 @@ const statusBadge: Record<AssignmentStatus, { variant: 'default' | 'success' | '
     completed: { variant: 'success', label: 'Completed' },
     overdue: { variant: 'danger', label: 'Overdue' },
     'needs-review': { variant: 'primary', label: 'Needs Review' },
-    cancelled: { variant: 'danger', label: 'Cancelled' },
 };
 
 const sourceIcons: Record<AssignmentSource, React.ReactNode> = {
